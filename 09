@@ -1,0 +1,56 @@
+#include <iostream>
+#include <string>
+
+// 老师类
+class Teacher {
+private:
+    std::string name_;
+    int age_;
+
+public:
+    Teacher(std::string name, int age) : name_(name), age_(age) {}
+
+    void teach() const {
+        std::cout << name_ << "(" << age_ << ")能够教学" << std::endl;
+    }
+
+    std::string getName() const { return name_; }
+    int getAge() const { return age_; }
+};
+
+// 学生类
+class Student {
+private:
+    std::string name_;
+    int numberId_;
+
+public:
+    Student(std::string name, int numberId) : name_(name), numberId_(numberId) {}
+
+    void leam() const {
+        std::cout << name_ << "(" << "未提供年龄, 学号: " << numberId_ << ")可以学习" << std::endl;
+    }
+
+    // 注意：为了简化，这里不提供获取年龄的方法，因为学生类原本只包含姓名和学号
+    std::string getName() const { return name_; }
+    int getNumberId() const { return numberId_; }
+};
+
+// 研究生类，继承自老师类，并添加学生类的相关属性和方法
+class Graduate : public Teacher {
+private:
+    int numberId_; // 学号，研究生特有的属性
+
+public:
+    Graduate(std::string name, int age, int numberId) : Teacher(name, age), numberId_(numberId) {}
+
+    // 继承自老师类的教学行为
+    using Teacher::teach;
+
+    // 学生类的学习行为
+    void leam() const {
+        std::cout << getName() << "(" << getAge() << ", 学号: " << numberId_ << ")可以学习" << std::endl;
+    }
+
+    int getNumberId() const { return numberId_; }
+};
