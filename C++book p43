@@ -1,0 +1,112 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <ctime>
+
+class BankAccount {
+private:
+    std::string accountNumber;
+    std::tm creationDate;
+    double balance;
+    std::vector<std::pair<std::tm, double>> transactions;
+
+public:
+    // 构造函数
+    BankAccount(const std::string& accNum, const std::tm& createDate, double initBalance)
+        : accountNumber(accNum), creationDate(createDate), balance(initBalance) {}
+
+    // 存钱方法
+    void deposit(double amount, const std::tm& depositDate = {}) {
+        if (depositDate.tm_year == 0) { // 如果未提供日期，则使用当前日期
+            std::time_t now = std::time(nullptr);
+            std::tm* localTime = std::localtime(&now);
+            depositDate = *localTime;
+        }
+        balance += amount;
+        transactions.emplace_back(depositDate, amount);
+    }
+
+    // 取钱方法
+    bool withdraw(double amount, const std::tm& withdrawDate = {}) {
+        if (depositDate.tm_year == 0) { // 如果未提供日期，则使用当前日期
+            std::time_t now = std::time(nullptr);
+            std::tm* localTime = std::localtime(&now);
+            withdrawDate = *localTime;
+        }
+        if (amount > balance) {
+            std::cerr << "余额不足，取款失败！" << std::endl;
+            return false;
+        }
+        balance -= amount;
+        transactions.emplace_back(withdrawDate, -amount); // 使用负数表示取款
+        return true;
+    }
+
+    // 查询交易明细方法
+    std::vector<std::pair<std::tm, double>> getTransactionHistory(const std::tm& oneMonthAgo) const {
+        std::vector<std::pair<std::tm, double>> recentTransactions;
+        for (const auto& transaction : transactions) {
+            if (std::difftime(std::mktime(const_cast<std::tm*>(&transaction.first)), std::mktime(const_cast<std::tm*>(&oneMonthAgo))) >= 0) {
+                recentTransactions.push_back(transaction);
+            }
+        }
+        return recentTransactions;
+    }
+
+    // 辅助函数：打印交易记录
+    void printTransactionHistory(const std::vector<std::pair<std::tm, double>>& history) const {
+        char buffer[100];
+        for (const auto& transaction : history) {
+            std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", const_cast<std::tm*>(&transaction.first));
+            std::cout << "日期: " << buffer << ", 金额: " << (transaction.second > 0 ? "+" : "") << transaction.second << std::endl;
+        }
+    }
+
+    // 辅助函数：获取一个月前的日期
+    static std::tm getOneMonthAgo() {
+        std::time_t now = std::time(nullptr);
+        std::tm* localTime = std::localtime(&now);
+        std::tm oneMonthAgo = *localTime;
+        oneMonthAgo.tm_mon -= 1; // 减一个月
+        // 处理月份小于0的情况（例如从1月减去1个月）
+        if (oneMonthAgo.tm_mon < 0) {
+            oneMonthAgo.tm_mon += 12;
+            oneMonthAgo.tm_year -= 1;
+        }
+        std::mktime(&oneMonthAgo); // 重新标准化时间（例如处理闰年、月份天数等）
+        return oneMonthAgo;
+    }
+};
+
+int main() {
+    // 初始化账户
+    std::tm creationDate = {};
+    creationDate.tm_year = 2023 - 1900; // 年份从1900年开始计算
+    creationDate.tm_mon = 0; // 1月（从0开始计数）
+    creationDate.tm_mday = 1;
+    BankAccount account("12345678", creationDate, 1000.0);
+
+    // 存钱
+    std::tm depositDate = {};
+    depositDate.tm_year = 2023 - 1900;
+    depositDate.tm_mon = 2 - 1; // 3月（从0开始计数）
+    depositDate.tm_mday = 15;
+    account.deposit(500.0, depositDate);
+
+    // 取钱
+    std::tm withdrawDate = {};
+    withdrawDate.tm_year = 2023 - 1900;
+    withdrawDate.tm_mon = 4 - 1; // 5月（从0开始计数）
+    withdrawDate.tm_mday = 5;
+    account.withdraw(200.0, withdrawDate);
+
+    // 查询近一个月交易记录
+    std::tm oneMonthAgo = BankAccount::getOneMonthAgo();
+    std::vector<std::pair<std::tm, double>> recentTransactions = account.getTransactionHistory(oneMonthAgo);
+
+    // 打印交易记录
+    std::cout << "近一个月交易记录：" << std::endl;
+    account.printTransactionHistory(recentTransactions);
+
+    return 0;
+}
