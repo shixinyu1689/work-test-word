@@ -1,0 +1,29 @@
+#include <stdio.h>
+#include <stdlib.h>
+long jc(long n) {
+    long a = 1;
+    if (n == 0 || n == 1) {
+        return 1;
+    } else {
+        for (long i = 2; i <= n; i++) {
+            a = a * i;
+        }
+        return a;
+    }
+}
+int main(int argc, char *argv[]) {
+    int n, k;
+    long sum;
+    scanf("%d%d", &n, &k);
+    if (jc(k - 1)*jc(n)!=0) {
+        sum = jc(n + k - 1)/(jc(k - 1)*jc(n));
+        printf("%ld", sum);
+    } else {
+        printf("除数不能为0，请重新输入合适的数值");
+    }
+
+
+    return 0;
+}
+
+
